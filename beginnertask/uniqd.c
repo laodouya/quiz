@@ -1,4 +1,4 @@
-//uniqd receive serial number and return duplicate number
+//uniqd receive serial number and return none duplicate number
 //listen port specified by argv
 
 #include<stdio.h>
