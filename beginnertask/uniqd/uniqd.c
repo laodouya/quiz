@@ -112,25 +112,19 @@ int init_socket(int port)
         exit(0);
     }
     
+    printf("======waiting at port:%d for client's request======\n", port);
     return listenfd;
 }
 
-int main(int argc, char* argv[])
-{
-    int port = get_port(argc, argv);
-    if (-1 == port)
-        return -1;
 
-    
+int infinite_loop(int listenfd)
+{
     char buff[MAX];
     int data[MAX];
     char str[MAX];
     int len, n, i, j, ret, tmp;
+    int connfd;
 
-    int listenfd, connfd;
-    listenfd = init_socket(port);
-
-    printf("======waiting at port:%d for client's request======\n", port);
     while(1)
     {
         //recieving
@@ -186,6 +180,20 @@ int main(int argc, char* argv[])
         close(connfd);
     }
 
+    return 0;
+}
+
+int main(int argc, char* argv[])
+{
+    int port = get_port(argc, argv);
+    if (-1 == port)
+        return -1;
+
+    int listenfd;
+    listenfd = init_socket(port);
+
+    infinite_loop(listenfd);
+    
     close(listenfd);
 
     return 0;
