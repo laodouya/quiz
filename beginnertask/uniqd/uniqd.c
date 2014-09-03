@@ -83,19 +83,11 @@ int get_port(int argc, char* argv[])
     return port;
 }
 
-int main(int argc, char* argv[])
+int init_socket(int port)
 {
-    int port = get_port(argc, argv);
-    if (-1 == port)
-        return -1;
-
     //make socket
-    int listenfd, connfd;
+    int listenfd;
     struct sockaddr_in servaddr;
-    char buff[MAX];
-    int len, n, i, j, ret, tmp;
-    int data[MAX];
-    char str[MAX];
 
     if ((listenfd = socket(AF_INET,SOCK_STREAM, 0)) == -1)
     {
@@ -107,7 +99,7 @@ int main(int argc, char* argv[])
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port = htons(port);
-
+    
     if (bind(listenfd,(struct sockaddr*)&servaddr, sizeof(servaddr)) == -1)
     {
         printf("bind socket error: %s(errno: %d)\n",strerror(errno),errno);
@@ -119,8 +111,26 @@ int main(int argc, char* argv[])
         printf("listen socket error: %s(errno: %d)\n",strerror(errno),errno);
         exit(0);
     }
+    
+    return listenfd;
+}
 
-    printf("======waiting for client's request======\n");
+int main(int argc, char* argv[])
+{
+    int port = get_port(argc, argv);
+    if (-1 == port)
+        return -1;
+
+    
+    char buff[MAX];
+    int data[MAX];
+    char str[MAX];
+    int len, n, i, j, ret, tmp;
+
+    int listenfd, connfd;
+    listenfd = init_socket(port);
+
+    printf("======waiting at port:%d for client's request======\n", port);
     while(1)
     {
         //recieving
