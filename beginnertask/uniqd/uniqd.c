@@ -77,7 +77,7 @@ int get_port(int argc, char* argv[])
         case 1:
             break;
         default:
-            printf("Usage: uniqd -l port");
+            printf("Usage: uniqd -l port\n");
             return -1;
     }
     return port;
@@ -86,6 +86,8 @@ int get_port(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
     int port = get_port(argc, argv);
+    if (-1 == port)
+        return -1;
 
     //make socket
     int listenfd, connfd;
