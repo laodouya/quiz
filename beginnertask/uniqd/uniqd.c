@@ -55,7 +55,7 @@ int unique_insert(int data[], int n, int new_data)
     return 1;
 }
 
-int main(int argc, char* argv[])
+int get_port(int argc, char* argv[])
 {
     //get port
     int port = 33333;
@@ -66,20 +66,26 @@ int main(int argc, char* argv[])
             if (-1 == port)
             {
                 printf("port invalid\n"); 
-                return 1;
+                return -1;
             }
             else if (port > 65535)
             {
                 printf("port too large\n");
-                return 1;
+                return -1;
             }
             break;
         case 1:
             break;
         default:
             printf("Usage: uniqd -l port");
-            return 1;
+            return -1;
     }
+    return port;
+}
+
+int main(int argc, char* argv[])
+{
+    int port = get_port(argc, argv);
 
     //make socket
     int listenfd, connfd;
