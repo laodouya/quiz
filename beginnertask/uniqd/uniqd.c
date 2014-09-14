@@ -9,7 +9,9 @@
 #include<unistd.h>
 #include<string.h>
 #include<errno.h>
-#define MAX 1024
+#define NUMLEN 1024
+#define DATAMAX 10240
+#define INPUTMAX 1024000
 
 //convert str to number, if only number > = 0. 
 //return -1 if str is invalid
@@ -35,7 +37,7 @@ int char_to_num(const char* str)
 //return -1 if insert failed
 int unique_insert(int data[], int n, int new_data)
 {
-    if (n >= MAX)
+    if (n >= DATAMAX)
         return -1;
 
     int start = 0, mid, end = n-1, i;
@@ -117,11 +119,11 @@ int init_socket(int port)
 }
 
 
-int infinite_loop(int listenfd)
+int main_loop(int listenfd)
 {
-    char buff[MAX];
-    int data[MAX];
-    char str[MAX];
+    char buff[INPUTMAX];
+    int data[DATAMAX];
+    char str[NUMLEN];
     int len, n, i, j, ret, tmp;
     int connfd;
 
@@ -133,7 +135,7 @@ int infinite_loop(int listenfd)
             printf("accept socket error: %s(errno: %d)",strerror(errno),errno);
             continue;
         }
-        len = recv(connfd, buff, MAX, 0);
+        len = recv(connfd, buff, INPUTMAX, 0);
         buff[len] = '\0';
         printf("recv msg from client: %s\n", buff);
         
@@ -192,7 +194,7 @@ int main(int argc, char* argv[])
     int listenfd;
     listenfd = init_socket(port);
 
-    infinite_loop(listenfd);
+    main_loop(listenfd);
     
     close(listenfd);
 
