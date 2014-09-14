@@ -118,66 +118,108 @@ int init_socket(int port)
     return listenfd;
 }
 
+//recieving
+int recieve_from_socket(int listenfd, char buff[])
+{
+    int connfd;
+    if ((connfd = accept(listenfd, (struct sockaddr*)NULL, NULL)) == -1)
+    {
+        printf("accept socket error: %s(errno: %d)",strerror(errno),errno);
+        return -1;
+    }
+    int len = recv(connfd, buff, INPUTMAX, 0);
+    if (-1 == len)
+    {
+        printf("recv data error: %s(errno: %d)",strerror(errno), errno);
+        return -1;
+    }
+    else if (INPUTMAX == len)
+    {
+        printf("too much input");
+        return -1;
+    }
+    buff[len] = '\0';
+    printf("recv msg from client: %s\n", buff);
+
+    return connfd;
+}
+
+//processing
+int split_and_insert(char buff[], int data[])
+{
+    char str[NUMLEN];
+    int n, i, j, ret, tmp;
+
+    memset(str, 0, sizeof(str));
+    n = 0;
+    i = 0;
+    j = 0;
+    while (buff[i]!='\0')
+    {
+        if ('\n' == buff[i])
+        {
+            str[j] = '\0';
+            tmp = char_to_num(str);
+            if (tmp > -1)
+            {
+                ret = unique_insert(data, n, tmp);
+                if (ret < 0)
+                    printf("insert data failed\n");
+                else if (ret > 0)
+                    n++;
+                else
+                    ;//DO Nothing
+            }
+            else
+                printf("number invalid\n");
+            j = 0;
+            i++;
+            continue;
+        }
+        str[j] = buff[i];
+        j++;
+        i++;
+    }
+
+    return n;
+}
+
+//sending
+int send_to_socket(int connfd, int data[], int num)
+{
+    char str[NUMLEN];
+    int i;
+
+    memset(str, 0, sizeof(str));
+    for (i = 0; i<num; i++)
+    {
+        sprintf(str, "%d\n", data[i]);
+        if (-1 == send(connfd, str, strlen(str), 0))
+            printf("send data failed\n");
+    }
+
+    return 0;
+}
 
 int main_loop(int listenfd)
 {
     char buff[INPUTMAX];
     int data[DATAMAX];
-    char str[NUMLEN];
-    int len, n, i, j, ret, tmp;
+    int ret, num;
     int connfd;
 
     while(1)
     {
         //recieving
-        if ((connfd = accept(listenfd, (struct sockaddr*)NULL, NULL)) == -1)
-        {
-            printf("accept socket error: %s(errno: %d)",strerror(errno),errno);
+        connfd = recieve_from_socket(listenfd, buff);
+        if (connfd < 0)
             continue;
-        }
-        len = recv(connfd, buff, INPUTMAX, 0);
-        buff[len] = '\0';
-        printf("recv msg from client: %s\n", buff);
         
         //processing
-        n = 0;
-        i = 0;
-        j = 0;
-        while (buff[i]!='\0')
-        {
-            if ('\n' == buff[i])
-            {
-                str[j] = '\0';
-                tmp = char_to_num(str);
-                if (tmp > -1)
-                {
-                    ret = unique_insert(data, n, tmp);
-                    if (ret < 0)
-                        printf("insert data failed\n");
-                    else if (ret > 0)
-                        n++;
-                    else
-                        ;//DO Nothing
-                }
-                else
-                    printf("number invalid\n");
-                j = 0;
-                i++;
-                continue;
-            }
-            str[j] = buff[i];
-            j++;
-            i++;
-        }
+        num = split_and_insert(buff, data);
         
         //sending
-        memset(str, 0, sizeof(str));
-        for (i = 0; i<n; i++)
-        {
-            sprintf(str, "%d\n", data[i]);
-            if (-1 == send(connfd, str, strlen(str), 0))
-                printf("send data failed\n");
-        }
+        ret = send_to_socket(connfd, data, num);
 
         close(connfd);
     }
